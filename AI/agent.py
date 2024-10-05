@@ -6,16 +6,6 @@ class Agent:
     def __init__(self, table):
         self.table = table
 
-
-    #def chooseAction(self, state, oldDirection, epsilon):
-        # select random action (exploration)
-        #if (random.random() < epsilon):
-        #    return random.choice([0, 1, 2, 3])
-        # select best action (exploitation)
-        #else:
-        #    qValuesDependingState = self.table[state] 
-        #    return np.argmax(qValuesDependingState)
-
     def chooseAction(self, state, oldDirection, epsilon):
         # select random action (exploration)
         actionsAvailable = [0,1,2,3]

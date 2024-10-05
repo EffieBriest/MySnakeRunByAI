@@ -2,7 +2,6 @@ import Game.snake as snake
 import Game.food as food
 import pygame
 from pygame.locals import *
-import time
 import Game.snakeVisuals as snakeVisuals
 
 class Game:

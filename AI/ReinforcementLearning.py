@@ -59,6 +59,13 @@ class ReinforecementLearning:
         with open(f'Projects\\MySnakeRunByAI\\AI\\pickle\\SARSA\\dataR40DN30ON1two.pickle', 'wb') as file:
                     pickle.dump(self.data, file)
 
+
+
+
+    
+
+    
+
     def demonstrateResult(self, file, mode):
         epsilon = 0
         if mode == 'QLEARNING':
