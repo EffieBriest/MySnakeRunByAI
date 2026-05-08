@@ -40,12 +40,38 @@ A Markov Decision Process is defined by a tuple $(S, A, P, R, \gamma)$:
 
 ### Key Properties and Concepts
 * **Markov Property:** The future state depends only on the current state and action, not the entire history. This "memoryless" property simplifies the problem.
-* **Total Reward:** The sum of discounted rewards over time, $$G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \dots = \sum_{k=0}^{\infty}\gamma^kR_{t+k+1}$$
-* **Policy $\pi$:** A policy is a function that maps states to actions, essentially defining the agent's strategy: $$\pi(a|s) = \mathbb{P}(A_t=a|S_t=s)$$ It can be deterministic (always choosing the same action in a given state) or stochastic (choosing actions with some probability).
+* **Total Reward:** The sum of discounted rewards over time:
+
+$$
+G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \dots
+= \sum_{k=0}^{\infty} \gamma^k R_{t+k+1}
+$$
+
+* **Policy** $\pi$: A policy is a function that maps states to actions, essentially defining the agent's strategy:
+
+$$
+\pi(a \mid s) = \mathbb{P}(A_t = a \mid S_t = s)
+$$
+
+It can be deterministic, always choosing the same action in a given state, or stochastic, choosing actions with some probability.
+
 * **Value Function:** A value function estimates the "goodness" of being in a particular state.
-    * **State-value function $v_\pi(s)$:** The expected total reward from a state s when following policy $\pi$: $$v_\pi(s) = \mathbb{E}_\pi[G_t|S_t=s] = \sum_{a\in A}\pi(a|s)q_\pi(s,a)$$
-    * **Action-value function $q_\pi(s,a)$:** The expected total reward from a state s after taking action a and then following policy $\pi$: $$q_\pi(s,a) = \mathbb{E}_\pi[G_t|S_t=s, A_t=a] = R_{s}^a+\gamma\sum_{s'\in S} P_{ss'}^a v_\pi(s')$$
-* **Optimal Policy $\pi^*$:** The policy that maximizes the expected total reward for all states. This is the ultimate goal of reinforcement learning.
+
+  * **State-value function** $v_\pi(s)$: The expected total reward from a state $s$ when following policy $\pi$:
+
+$$
+v_\pi(s) = \mathbb{E}_\pi[G_t \mid S_t = s]
+= \sum_{a \in A} \pi(a \mid s) q_\pi(s,a)
+$$
+
+  * **Action-value function** $q_\pi(s,a)$: The expected total reward from a state $s$ after taking action $a$ and then following policy $\pi$:
+
+$$
+q_\pi(s,a) = \mathbb{E}_\pi[G_t \mid S_t = s, A_t = a]
+= R_s^a + \gamma \sum_{s' \in S} P_{ss'}^a v_\pi(s')
+$$
+
+* **Optimal Policy** $\pi^*$: The policy that maximizes the expected total reward for all states. This is the ultimate goal of reinforcement learning.
 
 
 ### Why MDPs Matter in Reinforcement Learning
@@ -67,112 +93,10 @@ The Snake game is implemented using the Pygame library in Python. This involves 
 #### Key Components
 * `Food` Class: Handles the random generation of food within the game window, ensuring it doesn't overlap with the snake's body.
 
-```python=
-class Food:
-
-    def __init__(self, screenHeight, screenWidth):
-        self.screenHeight = screenHeight
-        self.screenWidth = screenWidth
-        self.x = random.randint(1,screenHeight-1)
-        self.y = random.randint(1,screenWidth-1)
-
-
-    def moveToNewLocation(self):
-        self.x = random.randint(1,self.screenHeight-1)
-        self.y = random.randint(1,self.screenWidth-1)
-```
-
-
 * `Snake` Class: Manages the snake's properties (length, position, direction) and its actions (movement, growing after eating food). It also includes collision detection (with itself or the walls).
-
-```python=       
-class Snake:
-
-    def __init__(self, screenHeight, screenWidth):
-        self.direction = 4 #0= UP, 1=DOWN, 2=LEFT, 3=RIGHT 
-        self.length = 1
-        self.x = [2000]
-        self.y = [2000]
-        self.x[0]=int(screenHeight/2) 
-        self.y[0]=int(screenWidth/2)
-
-    def move(self):
-        #update body
-        for i in range(self.length-1,0,-1):
-            self.x[i]=self.x[i-1]
-            self.y[i]=self.y[i-1]
-        #Move the head body            
-        if self.direction == 0:
-            self.y[0] -= 1
-        if self.direction == 1:
-            self.y[0] += 1
-        if self.direction == 2:
-            self.x[0] -= 1
-        if self.direction == 3:
-            self.x[0] += 1
-
-
-    def increaseLength(self):
-         self.length += 1
-         self.x.append(-1)
-         self.y.append(-1)
-``` 
 
 * `Game` Class: Controls the overall game logic, including initializing the game, updating the game state, handling collisions, and displaying the score.
 
-```python=
-class Game:
-
-    def __init__(self):
-        pygame.init()         
-        self.screen_height = 12
-        self.screen_width = 12
-        self.SIZE = 10
-        self.snake = snake.Snake(self.screen_height, self.screen_width)
-        self.food = food.Food(self.screen_height, self.screen_width)
-        self.snakeSpeed = 25
-        self.episode=1
-        self.distanceToFood = 0
-        self.visuals = snakeVisuals.snakeVisuals(self.screen_height, self.screen_width)
-        self.stepsWithoutFood = 0
-
-    def collisionCheck(self):
-        #snake bites itself
-        for i in range(1, self.snake.length-1):
-            if(self.snake.x[0]==self.snake.x[i] and self.snake.y[0]==self.snake.y[i]):
-                #print('bit itself')
-                return True 
-        #food spawned on snake
-            if(self.food.x==self.snake.x[i] and self.food.y==self.snake.y[i]):
-                    self.food.moveToNewLocation()
-        #snake colliding with the boundaries of the window
-        if not(0<= self.snake.x[0]<=self.screen_height-1 and 0<=self.snake.y[0]<=self.screen_width-1):
-            #print('wall')
-            return True
-
-        #snake catches food
-        if(self.snake.x[0]==self.food.x and self.snake.y[0]==self.food.y):
-            return 'FOOD'
-
-    def reset(self):
-        self.snake = snake.Snake(self.screen_height, self.screen_width)
-        self.apple = food.Food(self.screen_height, self.screen_width)
-
-
-    def run(self,action):
-        running = True
-        self.visuals.updateScreen(self.food, self.snake, running,  self.snake.length-1, self.episode)
-
-        self.snake.direction = action
-        self.snake.move()
-        self.distanceToFood =self.calculateSnakeDistanceToFood('x')+self.calculateSnakeDistanceToFood('y')
-        #time.sleep(self.snakeSpeed/100*((0.7)**(self.snake.length-1)))
-        self.stepsWithoutFood +=1
-        if (self.collisionCheck()):
-            running = False
-            self.stepsWithoutFood = 0
-        return running
-```
 #### State Representation
 Defining the state space is crucial in reinforcement learning. In this Snake game, we can represent the state using a combination of factors:
 
@@ -181,139 +105,8 @@ Defining the state space is crucial in reinforcement learning. In this Snake gam
 * Danger: Are there immediate obstacles (walls or the snake's body) in the directions the snake could move?
 
 This combination of factors creates a discrete state space. For example, one possible state could be "moving right, food above, danger ahead and to the right."
+
     
-```python=   
-    def evaluateEnvironment(self):
-        state = []
-        state.append(int(self.snake.direction == 0))
-        state.append(int(self.snake.direction == 1))
-        state.append(int(self.snake.direction == 2))
-        state.append(int(self.snake.direction == 3))
-        state.append(int(self.food.y < self.snake.y[0]))
-        state.append(int(self.food.y > self.snake.y[0]))
-        state.append(int(self.food.x < self.snake.x[0]))
-        state.append(int(self.food.x > self.snake.x[0]))
-        for i in range(4):
-        #      for j in range(1,9):
-                state.append(self.isUnsafeStreight(i,1))  
-        # for j in range(1,4):
-        #     for i in range(1,9):
-        #         state.append(self.isUnsafeDiagonal(0,3,j,i))
-        #         state.append(self.isUnsafeDiagonal(0,2,j,i))
-        #         state.append(self.isUnsafeDiagonal(1,3,j,i))
-        #         state.append(self.isUnsafeDiagonal(1,2,j,i))
-
-        #state.append(self.calculateSnakeDistanceToFood('x'))
-        #state.append(self.calculateSnakeDistanceToFood('y'))
-        return tuple(state)
-    
-    def isUnsafeDiagonal(self, directionOne, directionTwo, j, i):
-            if(self.snake.length>=2):
-                for k in range(self.snake.length -1):
-                    if(directionOne == 0 and directionTwo == 3):
-                        if(self.snake.x[0]+j == self.snake.x[k] and self.snake.y[0]+i==self.snake.y[k]):
-                            return 1
-                        if(self.snake.x[0]+j>= self.screen_width or self.snake.y[0]+j >= self.screen_height):
-                            return 1
-                    
-                    if(directionOne ==0 and directionTwo == 2):
-                        if(self.snake.x[0]-j == self.snake.x[k] and self.snake.y[0]+i==self.snake.y[k]):
-                            return 1
-                        if(self.snake.x[0]-j<= 0 or self.snake.y[0]+j >= self.screen_height):
-                            return 1
-                        
-                    if(directionOne== 1 and directionTwo == 2):
-                        if(self.snake.x[0]-j == self.snake.x[k] and self.snake.y[0]-i==self.snake.y[k]):
-                            return 1
-                        if(self.snake.x[0]-j<= 0 or self.snake.y[0]-j <= 0):
-                            return 1
-
-                    if(directionOne== 1 and directionTwo == 3):
-                        if(self.snake.x[0]+j == self.snake.x[k] and self.snake.y[0]-i==self.snake.y[k]):
-                            return 1
-                        if(self.snake.x[0]+j>= self.screen_width or self.snake.y[0]-j <= 0):
-                            return 1
-                    return 0
-            else:
-                    if(directionOne == 0 and directionTwo == 3):
-                        if(self.snake.x[0]+j>= self.screen_width or self.snake.y[0]+j >= self.screen_height):
-                            return 1
-                    
-                    if(directionOne ==0 and directionTwo == 2):
-                        if(self.snake.x[0]-j<= 0 or self.snake.y[0]+j >= self.screen_height):
-                            return 1
-                        
-                    if(directionOne== 1 and directionTwo == 2):
-                        if(self.snake.x[0]-j<= 0 or self.snake.y[0]-j <= 0):
-                            return 1
-
-                    if(directionOne== 1 and directionTwo == 3):
-                        if(self.snake.x[0]+j>= self.screen_width or self.snake.y[0]-j <= 0):
-                            return 1
-                    return 0
-
-
-    def isUnsafeStreight(self, direction, distance):
-        for j in range(distance):
-            if(self.snake.length>=2):
-                for i in range(self.snake.length-1):
-                    if (direction == 0):
-                        #wall ahead
-                        if(self.snake.y[0]+j>=self.screen_height):
-                            return 1
-                        #body ahead
-                        if(self.snake.x[0] == self.snake.x[i] and self.snake.y[0]==self.snake.y[i+1]+j):
-                            return 1
-                    if (direction == 1):
-                        #wall ahead
-                        if(self.snake.y[0]-j<=0):
-                            return 1
-                        #body ahead
-                        if(self.snake.x[0] == self.snake.x[i] and self.snake.y[0]==self.snake.y[i+1]+j):
-                            return 1
-                    if (direction == 2):
-                        #wall ahead
-                        if(self.snake.x[0]-j<=0):
-                            return 1
-                        #body ahead
-                        if(self.snake.y[0] == self.snake.y[i] and self.snake.x[0]==self.snake.x[i+1]-j):
-                            return 1
-                    if (direction == 3):
-                        #wall ahead
-                        if(self.snake.x[0]+j>=self.screen_width):
-                            return 1
-                        #body ahead
-                        if(self.snake.y[0] == self.snake.y[i] and self.snake.x[0]==self.snake.x[i+1]+j):
-                            return 1
-                    return 0
-            else:
-                if (direction == 0):
-                    #wall ahead
-                    if(self.snake.y[0]+j>=self.screen_height):
-                        return 1
-                if (direction == 1):
-                    #wall ahead
-                    if(self.snake.y[0]-j<=0):
-                        return 1
-                if (direction == 2):
-                    #wall ahead
-                    if(self.snake.x[0]-j<=0):
-                        return 1
-                if (direction == 3):
-                    #wall ahead
-                    if(self.snake.x[0]+j>=self.screen_width):
-                        return 1
-                return 0
-        
-
-    def calculateSnakeDistanceToFood(self, direction):
-        if(direction == 'x'):
-            return abs(self.snake.x[0]-self.food.x)
-        if(direction == 'y'):
-            return abs(self.snake.y[0]-self.food.y)
-```
-
-
 ### OpenAI Gym
 OpenAI Gym is a popular Python library designed to facilitate the development and comparison of reinforcement learning (RL) algorithms. It provides a standardized interface for interacting with various environments, ranging from simple toy problems to complex simulations.   
 
@@ -359,58 +152,6 @@ Gym environments, the fundamental building blocks of reinforcement learning, typ
 Reinforcement learning libraries like Stable Baselines 3 rely on these four functions to interact with the environment during training and evaluation. By adhering to this standard structure, you ensure compatibility with a wide range of RL frameworks and libraries.
 
 #### Implementation of the Environment 
-
-```python=
-register(
-    id= 'mySnake-v0',
-    entry_point = 'snakeCustomEnv:snakeEnv'
-)
-
-class snakeEnv(Env):
-    metadata = {'render_modes':{"human"}, 'render_fps':1}
-    def __init__(self):
-        self.game = snakeGame.Game()
-        self.action_space = Discrete(4)
-        self.observation_space = Box(low=0,high=3,shape=(20,), dtype=np.int32)
-        self.state = self.observation_space
-        self.distanceToFood =0
-
-    def step(self,action):
-        info ={}
-        stato =0
-        reward = 0
-        running = True
-        truncated = False
-        distanceToFoodOld =self.distanceToFood
-        self.distanceToFood = self.game.calculateSnakeDistanceToFood()
-        running = self.game.run(action)
-        if(self.game.collisionCheck()=='FOOD'):
-            print('FOOD')
-            reward +=100
-            stato = self.game.evaluateEnvironment()
-            self.game.snake.increaseLength()
-            self.game.food.moveToNewLocation()
-        if (self.game.collisionCheck()):
-            print(str(self.game.episode) +  ': ' + str(self.game.snake.length-1))
-            reward -= 80
-            stato = self.game.evaluateEnvironment()
-            self.game.reset()
-            self.game.episode +=1 
-            return stato, reward, running, truncated, info
-        if(self.game.stepsWithoutFood >=500):
-            reward -= 20
-            self.game.stepsWithoutFood = 0
-        return self.game.evaluateEnvironment(), reward, running, truncated, info
-        
-    def reset(self, seed=None, options=None):
-        info = {}
-        obs = self.game.evaluateEnvironment() #self.observation_space.sample()
-        super().reset(seed=seed)
-        return obs, info
-    
-    def render(self):
-        pass  
-```
 
 To leverage this library, you typically follow these steps:
 
@@ -459,80 +200,6 @@ SARSA (State-Action-Reward-State-Action) is an on-policy temporal difference lea
 
 #### Implementation of a custom QLearning/SARSA Model
 
-```python=
-class Model:
-    
-    def __init__(self, env):
-        self.discountRate = 0.95
-        self.learningRate = 0.0001
-        self.eps = 1.0
-        self.table = np.zeros((2,2,2, 2,2,2, 2,2,2, 2,2,2, 4))
-        self.agent = ClassicAgent.Agent(self.table)
-        self.env = env
-        self.epsDiscount = 0.9992
-        self.minEps = 0.001
-        self.numMaxEpisodes = 30000
-        self.data = [] 
-        
-    def learn(self, mode, episodes):
-        self.agent.setTable(self.table)
-        while self.env.game.episode in range(1, episodes + 1):
-            done = False
-            currentState = self.env.evaluateEnvironment()
-            self.eps = self.eps * self.epsDiscount
-            while not done:
-                # choose action and take it
-                action = self.agent.chooseAction(currentState, self.env.game.snake.direction, self.eps)
-                newState, reward, done, _, _, = self.env.run(action)
-                    
-                if(mode == 'QLearning'):
-                # Bellman Equation Update for QLearning
-                    self.table[currentState][action] = (1 - self.learningRate)* self.table[currentState][action] + self.learningRate* (reward + self.discountRate * max(self.table[newState]))
-                    self.agent.updateAgentTableValue(currentState, action, self.table[currentState][action])
-               
-                # Bellman Equation Update for Sarsa
-                if(mode == 'SARSA'):
-                    newAction = self.agent.chooseAction(newState, self.game.snake.direction, self.eps)
-                    self.table[currentState][action] = (1 - self.learningRate)* self.table[currentState][action] + self.learningRate* (reward + self.discountRate * self.table[newState][newAction])
-                    self.agent.updateAgentTableValue(currentState, action, self.table[currentState][action])
-
-                currentState = newState
-
-                if(done):
-                    self.data.append(self.env.game.snake.length-1)
-                    self.env.reset()
-        #dump score into file to plot later
-        with open(f'MySnakeRunByAI\\AI\\pickle\\SARSA\\dataR10DN50ON1LowerLearningRate.pickle', 'wb') as file:
-                    pickle.dump(self.data, file)
-
-    def save(self, name):
-        with open(f'MySnakeRunByAI\\AI\\pickle\\SARSA\\R10DN50ON1LowerLearningRate.pickle', 'wb') as file:
-            pickle.dump(self.table, file)
-```
-
-```python=
-class QLearning_SARSA_Agent:
-
-    def __init__(self, table):
-        self.table = table
-
-    def chooseAction(self, state, epsilon):
-        # select random action (exploration)
-        if (random.random() < epsilon):
-            return random.choice([0, 1, 2, 3])
-        else:
-            qValuesDependingState = self.table[state] 
-            i = np.argmax(qValuesDependingState)
-            leftValues = np.delete(qValuesDependingState,i)
-            return np.argmax(leftValues)
-
-    def setTable(self, table):
-        self.table = table
-
-    def updateAgentTableValue(self, currentState, action, newValue):
-        self.table[currentState][action] = newValue
-```
-
 In each episode:
 * Observe the current state.
 * Select an action based on the current policy (ε-greedy).
@@ -540,22 +207,6 @@ In each episode:
 * Observe the new state and reward.
 * Update the Q-value for the previous state-action pair using the Bellman equation.
 
-
-
-```python=
-def trainSb3():
-    modelDir = 'models'
-
-    env = gym.make('mySnake-v0')
-    model = Model(env)
-
-    TIMESTEPS = 100000
-    iters = 0
-    while True:
-        iters+=1
-        model.learn(TIMESTEPS, 'SARSA')
-        model.save(f"{modelDir}/SARSA_{TIMESTEPS*iters}")
-```
 
 ##### Training and Evaluation
 * Algorithm Selection: Choose either Q-learning or SARSA to train the agent.
@@ -645,31 +296,58 @@ Policy gradient methods are a class of algorithms used in reinforcement learning
    - To prevent large policy updates that can lead to instability, PPO clips the ratio of the new policy to the old policy.
    - This clipping ensures that the policy updates are bounded, making the optimization process more stable.
 
-**Algorithm**
+## Algorithm
+
 1. **Initialize**
-   - Initialize the policy network parameters, $θ$.
-   - Set the initial policy, $π_θ$.
+   - Initialize the policy network parameters, $\theta$.
+   - Set the initial policy, $\pi_\theta$.
+
 2. **Collect Data**
-   - Collect a batch of trajectories using the current policy, $\pi_θ$.
+   - Collect a batch of trajectories using the current policy, $\pi_\theta$.
    - Each trajectory consists of a sequence of states, actions, and rewards.
+
 3. **Calculate Advantage Function**
-   - Estimate the advantage function,
-    \begin{align*}
-    Â(s, a)=q(s,a)-v(s),
-    \end{align*}for each state-action pair in the trajectory.
+   - Estimate the advantage function for each state-action pair in the trajectory:
+
+$$
+\hat{A}(s,a) = q(s,a) - v(s)
+$$
+
    - The advantage function measures how much better an action is compared to the average action.
+
 4. **Update Policy**
-   - Update the policy parameters, $θ$, by maximizing the following clipped surrogate objective function:
-   \begin{align*}
-   L(\theta) = \mathbb{E}[min(r(\theta/\theta_{old}), clip(r(\theta/\theta_{old}), 1-\epsilon, 1+\epsilon))  Â)]
-   \end{align*}
-        - Where:
-          - $r(\theta/\theta_{old})$ is the ratio of the new policy's probability to the old policy's probability.
-          - $\epsilon$ is a clipping parameter.
-          - $Â$ is the estimated advantage function.
-    - The optimization is typically performed using stochastic gradient descent.
+
+Update the policy parameters, $\theta$, by maximizing the clipped surrogate objective function:
+
+$$
+L^{\mathrm{CLIP}}(\theta) =
+\mathbb{E}_t \left[
+\min \left(
+r_t(\theta)\hat{A}_t,
+\mathrm{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t
+\right)
+\right]
+$$
+
+where
+
+$$
+r_t(\theta) =
+\frac{\pi_\theta(a_t \mid s_t)}
+{\pi_{\theta_{\mathrm{old}}}(a_t \mid s_t)}
+$$
+
+- $r_t(\theta)$ is the ratio of the new policy's action probability to the old policy's action probability.
+- $\epsilon$ is the clipping parameter.
+- $\hat{A}_t$ is the estimated advantage at time step $t$.
+
+   - $r_t(\theta)$ is the ratio of the new policy's action probability to the old policy's action probability.
+   - $\epsilon$ is the clipping parameter.
+   - $\hat{A}_t$ is the estimated advantage at time step $t$.
+   - The optimization is typically performed using stochastic gradient descent or Adam.
+
 5. **Repeat**
-    - Repeat steps 2-4 until convergence or a desired performance level is reached.
+   - Repeat steps 2–4 until convergence or until the desired performance level is reached.
 
 **Advantages**:
 * Simple to implement
@@ -684,28 +362,47 @@ Policy gradient methods are a class of algorithms used in reinforcement learning
 ##### Actor-Critic Methods
 Actor-critic methods combine the best of both worlds: value-based and policy-based approaches. They consist of two components:
 
-Key Concepts:
+## Key Concepts
 
-**Actor-Critic Architecture**:
-* Actor: A neural network that learns a policy, $\pi(a|s)$, which maps states to actions.
-* Critic: A neural network that learns a value function, $v(s)$, which estimates the expected return from a given state.
-* Advantage Function:
-    The advantage function, A(s, a), measures how much         better taking action a in state s is compared to the       average action. It's calculated as:
-    \begin{align*}
-    A(s, a) = q(s, a) - v(s)
-    \end{align*}
-$q(s, a)$ is the action-value function, which estimates the expected return from taking action a in state s and following the optimal policy thereafter.
-* Policy Gradient Update:
-    The actor's parameters are updated using the policy     gradient:
-    \begin{align*}
-    \nabla_θ J(θ) ≈ \mathbb{E}[A(s, a) \nabla_θ \log π(a|s)]
-    \end{align*}
-* Value Function Update:
-  The critic's parameters are updated using a temporal difference (TD) error:
-  \begin{align*}
-  \delta = r + \gamma V(s') - V(s)
-  \nabla_w V(s) ≈ \delta \nabla_w V(s)
-  \end{align*}
+### Actor-Critic Architecture
+
+* **Actor:** A neural network that learns a policy, $\pi(a \mid s)$, which maps states to actions.
+
+* **Critic:** A neural network that learns a value function, $v(s)$, which estimates the expected return from a given state.
+
+* **Advantage Function:**  
+  The advantage function $A(s,a)$ measures how much better taking action $a$ in state $s$ is compared to the average action. It is calculated as:
+
+$$
+A(s,a) = q(s,a) - v(s)
+$$
+
+Here, $q(s,a)$ is the action-value function, which estimates the expected return from taking action $a$ in state $s$ and following the policy thereafter.
+
+* **Policy Gradient Update:**  
+  The actor's parameters are updated using the policy gradient:
+
+$$
+\nabla_\theta J(\theta)
+\approx
+\mathbb{E}
+\left[
+A(s,a) \nabla_\theta \log \pi(a \mid s)
+\right]
+$$
+
+* **Value Function Update:**  
+  The critic's parameters are updated using a temporal difference error:
+
+$$
+\delta = r + \gamma V(s') - V(s)
+$$
+
+The critic is then updated in the direction of:
+
+$$
+\nabla_w V(s) \approx \delta \nabla_w V(s)
+$$
 
 **Algorithm**:
 
@@ -760,47 +457,6 @@ The *MlpPolicy* in Stable-Baselines3 (SB3) is a Multi-Layer Perceptron (MLP) neu
 Key Features:
 * Default Architecture: Fully connected layers with customizable sizes and activation functions.
 * Customization: Use policy_kwargs to adjust the network architecture, e.g., number of layers or units.
-``` python=
-import gym
-from stable_baselines3 import A2C
-from stable_baselines3 import PPO
-from stable_baselines3 import DQN
-import os
-
-def trainSb3():
-    modelDir = 'models'
-    logDir = 'logs'
-    os.makedirs(modelDir, exist_ok=True)
-    os.makedirs(logDir, exist_ok=True)
-    
-    env = gym.make('mySnake-v0')
-    #model = A2C('MlpPolicy', env, verbose=0, vf_coef= 0.2, gamma= 0.97, device='cuda', tensorboard_log=logDir)
-    model = PPO('MlpPolicy', env, verbose=0, n_steps = 2048, batch_size= 512, n_epochs =4, gamma=0.94,  device ='cuda', tensorboard_log=logDir)
-    #model = DQN('MlpPolicy', env, verbose=0,gamma=0.8, exploration_fraction= 0.2, batch_size= 512, device ='cuda', tensorboard_log=logDir)
-    TIMESTEPS = 100000
-    iters = 0
-    while True:
-        iters+=1
-        model.learn(total_timesteps=TIMESTEPS, reset_num_timesteps=False)
-        model.save(f"{modelDir}/a2c_{TIMESTEPS*iters}")
-
-def testSb3():
-    env = gym.make('snake-v0')
-
-    # Load model
-    model = A2C.load(f'models//a2c_500000.zip', env=env)
-
-    # Run a test
-    obs = env.reset()
-    running = True
-    while True:
-        action, _ = model.predict(observation=obs)#, deterministic=True) # Turn on deterministic, so predict always returns the same behavior
-        obs, reward, running, truncated, info = env.step(action)
-
-        if (running == False):
-            break  
-```
-
 
 #### Training and Evaluation of the three stable_baseline3 Agents
 
