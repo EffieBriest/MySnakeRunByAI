@@ -454,7 +454,10 @@ SARSA (State-Action-Reward-State-Action) is an on-policy temporal difference lea
 
 ##### Key Mechanisms
 * **Q-table:** Similar to Q-learning, SARSA also uses a Q-table to store Q-values.
-* **Bellman Equation:** SARSA's update rule is slightly different from Q-learning: $$q_{\text{new}}(s, a) = (1-\alpha) q_{old}(s,a) + \alpha \overbrace{\left(R_{t+1}+\gamma q(s',a')\right)}^{\text{learned value}}$$
+* **Bellman Equation:** SARSA's update rule is slightly different from Q-learning:
+* ```math
+  q_{\text{new}}(s, a) = (1-\alpha) q_{old}(s,a) + \alpha \overbrace{\left(R_{t+1}+\gamma q(s',a')\right)}^{\text{learned value}}
+  ```
 * **Exploration-Exploitation:** Like Q-learning, SARSA can use $\epsilon$-greedy or other strategies to balance exploration and exploitation.
 
 #### Implementation of a custom QLearning/SARSA Model
